@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E-commerce Recommender Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f8f9fa;
+        margin: 0;
+        padding: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 20px;
+      }
+      .card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+      }
+      input,
+      button {
+        padding: 10px;
+        margin: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      #results {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🛒 E-commerce Recommender Demo</h1>
+
+    <div>
+      <input type="number" id="user_id" placeholder="Enter User ID" />
+      <button onclick="getUserRecs()">Recommend for User</button>
+    </div>
+
+    <div>
+      <input type="number" id="product_id" placeholder="Enter Product ID" />
+      <button onclick="getProductRecs()">Similar Products</button>
+    </div>
+
+    <div>
+      <input type="number" id="hybrid_user_id" placeholder="Hybrid User ID" />
+      <input
+        type="number"
+        id="hybrid_product_id"
+        placeholder="Hybrid Product ID"
+      />
+      <button onclick="getHybridRecs()">Hybrid Recs</button>
+    </div>
+
+    <h2>Results</h2>
+    <div id="results" class="container"></div>
+
+    <script>
+      const API_BASE = "http://127.0.0.1:5000"; // Flask backend
+
+      function renderResults(data) {
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = "";
+
+        if (!data || data.length === 0) {
+          resultsDiv.innerHTML = "<p>No results found.</p>";
+          return;
+        }
+
+        data.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+      <h3>${item.product_name}</h3>
+      <p><b>ID:</b> ${item.product_id}</p>
+    `;
+          resultsDiv.appendChild(card);
+        });
+      }
+
+      async function getUserRecs() {
+        const userId = document.getElementById("user_id").value;
+        if (!userId) return alert("Enter User ID");
+        const res = await fetch(`${API_BASE}/recommend/user/${userId}`);
+        const data = await res.json();
+        renderResults(data);
+      }
+
+      async function getProductRecs() {
+        const productId = document.getElementById("product_id").value;
+        if (!productId) return alert("Enter Product ID");
+        const res = await fetch(`${API_BASE}/recommend/product/${productId}`);
+        const data = await res.json();
+        renderResults(data);
+      }
+
+      async function getHybridRecs() {
+        const userId = document.getElementById("hybrid_user_id").value;
+        const productId = document.getElementById("hybrid_product_id").value;
+        if (!userId && !productId)
+          return alert("Enter at least User ID or Product ID");
+
+        const url = new URL(`${API_BASE}/recommend/hybrid`);
+        if (userId) url.searchParams.append("user_id", userId);
+        if (productId) url.searchParams.append("product_id", productId);
+
+        const res = await fetch(url);
+        const data = await res.json();
+        renderResults(data);
+      }
+    </script>
+  </body>
+</html>

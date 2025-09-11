@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block title %}Product Catalog{% endblock %}
+{% block content %}
+
+<h2 class="text-3xl font-semibold mb-6">Our Products</h2>
+
+<form method="get" class="mb-8">
+    <label for="department" class="mr-2 font-medium text-gray-700">Filter by department:</label>
+    <select name="department" id="department" onchange="this.form.submit()" class="border rounded p-2">
+        <option value="" {% if not request.args.get('department') %}selected{% endif %}>All</option>
+        {% for cat in categories %}
+            <option value="{{ cat[0] }}" {% if request.args.get('department') == cat[0] %}selected{% endif %}>{{ cat[0] }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+<section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+    {% for product in products.items %}
+    <div class="bg-white rounded shadow p-4 hover:shadow-lg transition flex flex-col">
+         {% if product.product_id == 1 %}
+      <img src="{{ url_for('static', filename='images/pr1.png') }}" alt="{{ product.product_name }}" class="w-40 h-40 object-cover rounded mb-4" />
+    {% endif %}
+        <h3 class="text-lg font-semibold mb-1">
+            <a href="{{ url_for('product_detail', product_id=product.product_id) }}"
+               class="text-blue-600 hover:underline">{{ product.product_name }}</a>
+        </h3>
+        <p class="text-gray-600 mb-1"><strong>Aisle:</strong> {{ product.aisle }}</p>
+        <p class="text-gray-600 mb-4"><strong>Department:</strong> {{ product.department }}</p>
+        <button onclick="addToCart('{{ product.product_id }}')"
+                class="mt-auto bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Add to Cart</button>
+    </div>
+    {% endfor %}
+
+</section>
+
+<!-- Pagination -->
+<div class="flex justify-center items-center space-x-4 mt-8">
+    {% if products.has_prev %}
+        <a href="{{ url_for('catalog', page=products.prev_num, department=request.args.get('department','')) }}"
+           class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
+    {% endif %}
+    <span>Page {{ products.page }} of {{ products.pages }}</span>
+    {% if products.has_next %}
+        <a href="{{ url_for('catalog', page=products.next_num, department=request.args.get('department','')) }}"
+           class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+    {% endif %}
+</div>
+
+<h2 class="text-2xl font-semibold mt-12 mb-6">Recommended for You</h2>
+
+<section class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+    {% for product in recommendations %}
+    <div class="bg-white rounded shadow p-3 hover:shadow-lg transition text-center">
+        <a href="{{ url_for('product_detail', product_id=product.product_id) }}" class="font-medium text-blue-600 hover:underline">
+            {{ product.product_name }}
+        </a>
+    </div>
+    {% else %}
+    <p class="text-gray-600 italic">No recommendations available yet.</p>
+    {% endfor %}
+</section>
+
+<script>
+    var cart = [];
+
+    function addToCart(productId) {
+        cart.push(productId);
+        alert("Added to cart!");
+        console.log(cart);
+        // TODO: send cart info to backend API for persistence
+    }
+</script>
+
+{% endblock %}
